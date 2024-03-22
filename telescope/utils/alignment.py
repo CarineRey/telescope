@@ -31,19 +31,26 @@ CODES = [
 
 CODE_INT = {t[0]:i for i,t in enumerate(CODES)}
 
+def get_tag(aln):
+    tag_dic = {"AS":0, "YS":0}
+    for tag, val in aln.tags:
+        tag_dic[tag] = val
+    return (tag_dic)
+
+
 def readkey(aln):
     ''' Key that is unique for alignment '''
     return (aln.query_name, aln.is_read1,
             aln.reference_id, aln.reference_start,
             aln.next_reference_id, aln.next_reference_start,
-            abs(aln.template_length))
+            abs(aln.template_length), get_tag(aln)["AS"])
 
 
 def matekey(aln):
     return (aln.query_name, not aln.is_read1,
             aln.next_reference_id, aln.next_reference_start,
             aln.reference_id, aln.reference_start,
-            abs(aln.template_length))
+            abs(aln.template_length), get_tag(aln)["YS"])
 
 def mate_before(aln):
     """ Check if mate is before (to the left) of aln
@@ -170,14 +177,21 @@ def fetch_pairs_sorted(alniter, regtup=None):
             yield (_code, AlignedPair(aln))
         else:
             if aln.is_proper_pair:
-                mate = readcache.pop(matekey(aln), None)
-                if mate:
+                #mate = readcache.pop(matekey(aln), None)
+                mate_in_a_list = readcache.get(matekey(aln)) # test if mate in readcache               
+                if mate_in_a_list: # mate in readcache, get aln and erase the key if the list is empty
+                    mate = mate_in_a_list.pop()
+                    if len(mate_in_a_list) == 0:
+                        readcache.pop(matekey(aln), None)
                     if aln.is_read1:
                         yield (CODE_INT['PM'], AlignedPair(aln, mate))
                     else:
                         yield (CODE_INT['PM'], AlignedPair(mate, aln))
-                else:
-                    readcache[readkey(aln)] = aln
+                else: # mate not in readcache add aln in readcache
+                    if readkey(aln) in readcache:
+                        lg.debug('dup ali, rid: %s, tags: %s', readkey(aln), aln.tags)
+                    #readcache[readkey(aln)] = aln # in rare cases aln can have the same key, use a list to deal with duplicate
+                    readcache.setdefault(readkey(aln), []).append(aln)
             else:
                 assert not (aln.is_unmapped and aln.mate_is_unmapped), 'Found unmapped pair in sorted BAM file'
                 _code = CODE_INT['PX*'] if aln.is_unmapped else CODE_INT['PX']
@@ -185,6 +199,7 @@ def fetch_pairs_sorted(alniter, regtup=None):
 
     for aln in readcache.values():
         #TODO: deal with these somehow
+        lg.debug('New cached, rid: %s, tags: %s', readkey(aln), aln.tags)
         yield ('cached', AlignedPair(aln))
 
 def fetch_region(samfile, annotation, opts, region):

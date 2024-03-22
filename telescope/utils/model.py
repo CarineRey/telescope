@@ -209,7 +209,14 @@ class Telescope(object):
         for f in files:
             lines = (l.strip('\n').split('\t') for l in open(f, 'rU'))
             for code, rid, fid, ascr, alen in lines:
-                yield (int(code), rid, fid, int(ascr), int(alen))
+                if (code == "cached" and fid == self.opts.no_feature_key):
+                    lg.warning('Unfound mate (but no_feature region)')
+                    lg.debug('code: %s, rid: %s, fid: %s, ascr: %s, alen: %s, file: %s', code, rid, fid, ascr, alen, f)
+                elif (code == "cached" and fid != self.opts.no_feature_key):
+                    lg.warning('Unfound mate in feature region)')
+                    lg.warning('code: %s, rid: %s, fid: %s, ascr: %s, alen: %s, file: %s', code, rid, fid, ascr, alen, f)
+                else:
+                    yield (int(code), rid, fid, int(ascr), int(alen))
 
     def _load_sequential(self, annotation):
         _update_sam = self.opts.updated_sam
