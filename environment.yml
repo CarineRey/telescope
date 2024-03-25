@@ -1,4 +1,4 @@
-name: telescope
+name: telescope_forkCR
 channels:
   - conda-forge
   - bioconda
