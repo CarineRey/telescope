@@ -387,6 +387,12 @@ def run(args, sc = True):
     ''' Create Telescope object '''
     ts = scTelescope(opts) if sc == True else Telescope(opts)
 
+    ''' Check CPU number '''
+    if opts.ncpu > 1:
+        lg.warning("ncpu > 1 : not implemented yet")
+        if not opts.debug:
+            sys.exit('ncpu > 1 : not implemented yet')
+
     ''' Load annotation '''
     Annotation = get_annotation_class(opts.annotation_class)
     lg.info('Loading annotation...')
@@ -405,8 +411,6 @@ def run(args, sc = True):
 
     ''' Print alignment summary '''
     ts.print_summary(lg.INFO)
-    if opts.ncpu > 1:
-        sys.exit('ncpu > 1 : not implemented yet')
 
     ''' Exit if no overlap '''
     if ts.run_info['overlap_unique'] + ts.run_info['overlap_ambig'] == 0:
