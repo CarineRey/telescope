@@ -202,7 +202,7 @@ def fetch_pairs_sorted(alniter, regtup=None):
         lg.debug('New cached, rid: %s, tags: %s', readkey(aln), aln.tags)
         yield ('cached', AlignedPair(aln))
 
-def fetch_region(samfile, annotation, opts, region):
+def fetch_region(region, samfile, annotation, opts):
     lg.info('processing {}:{}-{}'.format(*region))
 
     _nfkey = opts["no_feature_key"]
