@@ -183,23 +183,25 @@ class Telescope(object):
             'no_feature_key': self.opts.no_feature_key,
             'overlap_mode': self.opts.overlap_mode,
             'overlap_threshold': self.opts.overlap_threshold,
-            'tempdir': self.opts.tempdir
+            'tempdir': self.opts.tempdir,
+            'stranded_mode': self.opts.stranded_mode
         }
+
         _minAS, _maxAS = BIG_INT, -BIG_INT
         alninfo = Counter()
         mfiles = []
         pool = Pool(processes = self.opts.ncpu)
         _loadfunc = functools.partial(alignment.fetch_region,
-                                      self.opts.samfile,
-                                      annotation,
-                                      opt_d,
+                                      samfile=self.opts.samfile,
+                                      annotation=annotation,
+                                      opts=opt_d,
                                       )
         result = pool.map_async(_loadfunc, regions)
         mappings = []
-        for mfile, scorerange, _pxu in result.get():
+        for mfile, (_minAS_x, _maxAS_x), _pxu in result.get():
             alninfo['unmap_x'] += _pxu
-            _minAS = min(scorerange[0], _minAS)
-            _maxAS = max(scorerange[1], _maxAS)
+            _minAS = min(_minAS_x, _minAS)
+            _maxAS = max(_maxAS_x, _maxAS)
             mfiles.append(mfile)
 
         _miter = self._mapping_fromfiles(mfiles)
@@ -224,7 +226,7 @@ class Telescope(object):
         _omode, _othresh = self.opts.overlap_mode, self.opts.overlap_threshold
 
         _mappings = []
-        assign = Assigner(annotation, _nfkey, _omode, _othresh, self.opts).assign_func()
+        assign = Assigner(annotation, _nfkey, _omode, _othresh, self.opts.stranded_mode).assign_func()
 
         """ Load unsorted reads """
         alninfo = Counter()
@@ -873,26 +875,26 @@ class TelescopeLikelihood(object):
 
 class Assigner:
     def __init__(self, annotation,
-                 no_feature_key, overlap_mode, overlap_threshold, opts):
+                 no_feature_key, overlap_mode, overlap_threshold, stranded_mode):
         self.annotation = annotation
         self.no_feature_key = no_feature_key
         self.overlap_mode = overlap_mode
         self.overlap_threshold = overlap_threshold
-        self.opts = opts
+        self.stranded_mode = stranded_mode
 
     def assign_func(self):
         def _assign_pair_threshold(pair):
             blocks = pair.refblocks
             if pair.r1_is_reversed:
                 if pair.is_paired:
-                    frag_strand = '+' if self.opts.stranded_mode[-1] == 'F' else '-'
+                    frag_strand = '+' if self.stranded_mode[-1] == 'F' else '-'
                 else:
-                    frag_strand = '-' if self.opts.stranded_mode[0] == 'F' else '+'
+                    frag_strand = '-' if self.stranded_mode[0] == 'F' else '+'
             else:
                 if pair.is_paired:
-                    frag_strand = '-' if self.opts.stranded_mode[-1] == 'F' else '+'
+                    frag_strand = '-' if self.stranded_mode[-1] == 'F' else '+'
                 else:
-                    frag_strand = '+' if self.opts.stranded_mode[0] == 'F' else '-'
+                    frag_strand = '+' if self.stranded_mode[0] == 'F' else '-'
             f = self.annotation.intersect_blocks(pair.ref_name, blocks, frag_strand)
             if not f:
                 return self.no_feature_key

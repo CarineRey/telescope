@@ -205,11 +205,12 @@ def fetch_pairs_sorted(alniter, regtup=None):
 def fetch_region(samfile, annotation, opts, region):
     lg.info('processing {}:{}-{}'.format(*region))
 
-    _nfkey = opts['no_feature_key']
-    _omode, _othresh = opts['overlap_mode'], opts['overlap_threshold']
-    _tempdir = opts['tempdir']
+    _nfkey = opts["no_feature_key"]
+    _omode, _othresh = opts["overlap_mode"], opts["overlap_threshold"]
+    _tempdir = opts["tempdir"]
+    _stranded_mode = opts["stranded_mode"]
 
-    assign = model.Assigner(annotation, _nfkey, _omode, _othresh).assign_func()
+    assign = model.Assigner(annotation, _nfkey, _omode, _othresh, _stranded_mode).assign_func()
 
     _minAS, _maxAS = BIG_INT, -BIG_INT
     _unaligned = 0
@@ -232,4 +233,4 @@ def fetch_region(samfile, annotation, opts, region):
             print('\t'.join(map(str, m)), file=fh)
 
     fh.close()
-    return mfile, (_minAS, _maxAS), _unaligned
+    return (mfile, (_minAS, _maxAS), _unaligned)
