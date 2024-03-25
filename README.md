@@ -37,15 +37,15 @@ instructions on setting up bioconda.
 
 **Latest version:**
 
-Use conda/mamba package manager to install dependencies, then 
+Use conda package manager to install dependencies, then 
 use `pip` to install Telescope.
 
 The following has been testing using miniconda3 on macOS and Linux (CentOS 7):
 
 ```bash
-mamba env create -n telescope https://github.com/mlbendall/telescope/raw/main/environment.yml
-conda activate telescope
-pip install git+https://github.com/mlbendall/telescope.git
+conda env create -f https://github.com/carinerey/telescope/raw/main/environment.yml
+conda activate telescope_forkCR
+pip install git+https://github.com/carinerey/telescope.git
 telescope --version
 ```
 
