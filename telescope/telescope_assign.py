@@ -405,8 +405,8 @@ def run(args, sc = True):
 
     ''' Print alignment summary '''
     ts.print_summary(lg.INFO)
-    # if opts.ncpu > 1:
-    #     sys.exit('not implemented yet')
+    if opts.ncpu > 1:
+        sys.exit('ncpu > 1 : not implemented yet')
 
     ''' Exit if no overlap '''
     if ts.run_info['overlap_unique'] + ts.run_info['overlap_ambig'] == 0:
