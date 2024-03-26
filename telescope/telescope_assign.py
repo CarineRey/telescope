@@ -393,6 +393,14 @@ def run(args, sc = True):
         if not opts.debug:
             sys.exit('ncpu > 1 : not implemented yet')
 
+    ''' Check Sam/Bam file unsorted by coordinate (=sorted by read names)'''
+    if ts.is_sorted and opts.ncpu == 1:
+        lg.warning("Sam/Bam file must be sorted by read names if you use ncpu = 1")
+        sys.exit('Sam/Bam file must be sorted by read names if you use ncpu = 1')
+    elif opts.ncpu > 1 and not (ts.is_sorted and ts.has_index) :
+        lg.warning("Sam/Bam file must be sorted by coordinates and indexed if you use ncpu > 1")
+        sys.exit('Sam/Bam file must be sorted by coordinates and indexed if you use ncpu > 1')
+
     ''' Load annotation '''
     Annotation = get_annotation_class(opts.annotation_class)
     lg.info('Loading annotation...')

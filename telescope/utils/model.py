@@ -102,6 +102,8 @@ class Telescope(object):
 
             self.ref_names = sf.references
             self.ref_lengths = sf.lengths
+            self.header = sf.header.to_dict()
+            self.is_sorted = self.header["HD"]["SO"] == "coordinate"
 
         return
 
